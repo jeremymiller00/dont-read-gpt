@@ -4,13 +4,19 @@ import re
 import backoff
 from functools import partial
 
-openai.api_key = os.environ['OPENAI_KEY']
-client = openai.OpenAI(api_key=os.environ['OPENAI_KEY'])
+from dotenv import load_dotenv
+load_dotenv()
+
+
+# openai.api_key = os.getenv('OPENAI_API_KEY')
+client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
 
 def is_chinese(text):
     if any(u'\u4e00' <= c <= u'\u9fff' for c in text):
         return True
     return False
+
 
 # Retry with exponential backoff just in case OpenAI API is temporarily unavailable
 @backoff.on_exception(
@@ -25,17 +31,18 @@ def gen_gpt_completion(prompt, temp=0.0, engine="text-davinci-003", max_tokens=1
         max_tokens=max_tokens,
         temperature=0.5,
         top_p=1,
-        stop = None,
-        #frequency_penalty=0.5,
-        #presence_penalty=0.5,
+        stop=None,
+        # frequency_penalty=0.5,
+        # presence_penalty=0.5,
     )
     return response
 
+
 # Use gpt-40o for longer text and chat completion
-#@backoff.on_exception(
-#    partial(backoff.expo, max_value=2),
-#    (openai.RateLimitError, openai.APIError, openai.APIConnectionError),
-#)
+# @backoff.on_exception(
+#     partial(backoff.expo, max_value=2),
+#     (openai.RateLimitError, openai.APIError, openai.APIConnectionError),
+# )
 def gen_gpt_chat_completion(system_prompt, user_prompt, temp=0.0, engine="gpt-4o", max_tokens=1024,
                             top_p=1, frequency_penalty=0, presence_penalty=0,):
     
@@ -50,8 +57,8 @@ def gen_gpt_chat_completion(system_prompt, user_prompt, temp=0.0, engine="gpt-4o
                     presence_penalty=0)
     return response
 
-def generate_summary(text_snippet, summary_type='general'):
 
+def generate_summary(text_snippet, summary_type='general'):
     max_input_words = 100000
     max_input_words_chinese = 50000
     max_output_tokens = 1024
@@ -69,12 +76,12 @@ def generate_summary(text_snippet, summary_type='general'):
         words = words[:max_input_words]
         text_snippet = " ".join(words)
 
-    #arxiv_paper_prompt = f'Please provide a summary of the following ArXiv paper\'s title and abstract within 450 chars, addressing the following aspects:\n1. Main problem or research question\n2. Key methodology or approach\n3. Main results or findings\n4. Comparison to previous work or state of the art\n5. Potential applications or implications\n6. Limitations or future work\n\n{text_snippet}\n\nSummary:'
-    #github_repo_prompt = f'Please provide a summary of the following GitHub repository README.md· within 450 chars, addressing the following aspects:\n1. Purpose of the project\n2. Key features and benefits\n3. Technology stack or programming languages used\n4. Dependencies or prerequisites\n5. Installation, setup, and usage instructions\n6. Maintenance and main contributors\n7. Known limitations or issues\n8. Project license and usage restrictions\n9. Contribution guidelines\n10. Additional documentation or resources\n\n{text_snippet}\n\nSummary:'
-    #general_prompt = f'Please provide a concise summary of the following text within 380 chars, addressing the following aspects:\n1. Main topic or subject\n2. Core arguments or points\n3. Significant findings, results, or insights\n4. Comparisons or contrasts with other ideas or studies\n5. Implications or potential applications\n\n{text_snippet}\n\nSummary:'
-    #arxiv_paper_prompt = f'You are a scientific researcher. Please provide a concise summary of the following ArXiv paper\'s title and abstract, limit 100 words, addressing the following aspects if available:\n1. Main problem or research question\n2. Key methodology or approach\n3. Main results or findings\n4. Comparison to previous work or state of the art\n5. Potential applications or implications\n6. Limitations or future work'
-    #github_repo_prompt = f'You are a scientific researcher. Please provide a concise summary of the following GitHub repository README.md, limit 100 words, addressing the following aspects if available:\n1. Purpose of the project\n2. Key features and benefits\n3. Technology stack or programming languages used\n4. Dependencies or prerequisites\n5. Installation, setup, and usage instructions\n6. Maintenance and main contributors\n7. Known limitations or issues\n8. Project license and usage restrictions\n9. Contribution guidelines\n10. Additional documentation or resources'
-    #youtube_prompt = f'You are a scientific researcher. Expert in technical and research content analysis: Summarize the video transcript (150 words max). Cover if available: 1. Main topic. 2. Key concepts/technologies. 3. Primary arguments/points. 4. Significant findings/conclusions. 5. Methodologies/approaches. 6. Examples/case studies. 7. Relation to current trends/knowledge. 8. Counterpoints/alternatives. 9. Future implications/applications. 10. Key quotes/statements. 11. Limitations/weaknesses. 12. Additional resources. 13. Key takeaways.'
+    # arxiv_paper_prompt = f'Please provide a summary of the following ArXiv paper\'s title and abstract within 450 chars, addressing the following aspects:\n1. Main problem or research question\n2. Key methodology or approach\n3. Main results or findings\n4. Comparison to previous work or state of the art\n5. Potential applications or implications\n6. Limitations or future work\n\n{text_snippet}\n\nSummary:'
+    # github_repo_prompt = f'Please provide a summary of the following GitHub repository README.md· within 450 chars, addressing the following aspects:\n1. Purpose of the project\n2. Key features and benefits\n3. Technology stack or programming languages used\n4. Dependencies or prerequisites\n5. Installation, setup, and usage instructions\n6. Maintenance and main contributors\n7. Known limitations or issues\n8. Project license and usage restrictions\n9. Contribution guidelines\n10. Additional documentation or resources\n\n{text_snippet}\n\nSummary:'
+    # general_prompt = f'Please provide a concise summary of the following text within 380 chars, addressing the following aspects:\n1. Main topic or subject\n2. Core arguments or points\n3. Significant findings, results, or insights\n4. Comparisons or contrasts with other ideas or studies\n5. Implications or potential applications\n\n{text_snippet}\n\nSummary:'
+    # arxiv_paper_prompt = f'You are a scientific researcher. Please provide a concise summary of the following ArXiv paper\'s title and abstract, limit 100 words, addressing the following aspects if available:\n1. Main problem or research question\n2. Key methodology or approach\n3. Main results or findings\n4. Comparison to previous work or state of the art\n5. Potential applications or implications\n6. Limitations or future work'
+    # github_repo_prompt = f'You are a scientific researcher. Please provide a concise summary of the following GitHub repository README.md, limit 100 words, addressing the following aspects if available:\n1. Purpose of the project\n2. Key features and benefits\n3. Technology stack or programming languages used\n4. Dependencies or prerequisites\n5. Installation, setup, and usage instructions\n6. Maintenance and main contributors\n7. Known limitations or issues\n8. Project license and usage restrictions\n9. Contribution guidelines\n10. Additional documentation or resources'
+    # youtube_prompt = f'You are a scientific researcher. Expert in technical and research content analysis: Summarize the video transcript (150 words max). Cover if available: 1. Main topic. 2. Key concepts/technologies. 3. Primary arguments/points. 4. Significant findings/conclusions. 5. Methodologies/approaches. 6. Examples/case studies. 7. Relation to current trends/knowledge. 8. Counterpoints/alternatives. 9. Future implications/applications. 10. Key quotes/statements. 11. Limitations/weaknesses. 12. Additional resources. 13. Key takeaways.'
     arxiv_paper_prompt = (
     'You are a scientific researcher. Please provide a concise summary of the following ArXiv paper\'s title and abstract, limit 100 words. Include only the aspects that are available:\n'
     '1. Main problem or research question.\n'
@@ -186,6 +193,7 @@ def generate_summary(text_snippet, summary_type='general'):
             error_message = "An error occurred: " + str(e)
         return error_message
 
+
 def generate_embedding(text_snippet):
     #embedding = openai.Embedding.create(
     #    input=text_snippet, model="text-embedding-ada-002"
@@ -194,6 +202,7 @@ def generate_embedding(text_snippet):
         input=text_snippet[:8192], model="text-embedding-ada-002"
     ).data[0].embedding
     return embedding
+
 
 def extract_keywords_from_summary(summary):
     prompt = (
@@ -225,6 +234,7 @@ def extract_keywords_from_summary(summary):
             error_message = "An error occurred: " + str(e)
         return error_message
 
+
 def summary_to_obsidian_markdown(summary, keywords):
     not_found_keywords = []
 
@@ -242,11 +252,13 @@ def summary_to_obsidian_markdown(summary, keywords):
     
     return summary
 
+
 def test_obsidian_markdown():
     summary = "This is a summary of a paper about the use of AI in the field of medicine. The paper discusses the use of AI to diagnose diseases and predict the effectiveness of treatments. The paper also discusses the use of AI to predict the effectiveness of treatments for diseases such as cancer and diabetes. The paper also discusses the use of AI to predict the effectiveness of treatments for diseases such as cancer and diabetes. The paper also discusses the use of AI to predict the effectiveness of treatments for diseases such as cancer and diabetes. The paper also discusses the use of AI to predict the effectiveness of treatments for diseases such as cancer and diabetes. The paper also discusses the use of AI to predict the effectiveness of treatments for diseases such as cancer and diabetes. The paper also discusses the use of AI to predict the effectiveness of treatments for diseases such as cancer and diabetes."
     keywords = extract_keywords_from_summary(summary)
     result = summary_to_obsidian_markdown(summary, keywords)
     print(keywords, result)
+
 
 if __name__ == '__main__':
     test_obsidian_markdown()

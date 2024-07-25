@@ -4,6 +4,7 @@ import time
 import os
 import socket
 import json
+from dataclasses import dataclass
 
 from ai_func import generate_summary, extract_keywords_from_summary
 from ai_func import summary_to_obsidian_markdown
@@ -13,14 +14,16 @@ from wget_func import get_url_content
 from wget_func import download_arxiv_pdf
 
 from mastodon_func import post_masotodon
+from dotenv import load_dotenv
+
+load_dotenv()
 
 #client = discord.Client()
-intents = discord.Intents.default()
-intents.members = True # Enable the privileged members intent
 
-discord_token = os.environ['DISCORD_TOKEN']
-
-client = discord.Client(intents=intents)
+# intents = discord.Intents.default()
+# intents.members = True # Enable the privileged members intent
+# discord_token = os.getenv('DISCORD_TOKEN')
+# client = discord.Client(intents=intents)
 
 
 def get_file_path(url):
@@ -83,6 +86,7 @@ def get_file_path(url):
     # Return the file type and file path
     return (file_type, f'{path}/{file_name}', str(int(time_now)), url)
 
+
 # save the content into a JSON file
 def save_content(file_type, file_path, timestamp, content, url, summary, keywords, embeddings, obsidian_markdown):
     # Create a dictionary for the content
@@ -111,28 +115,29 @@ def save_content(file_type, file_path, timestamp, content, url, summary, keyword
 
     return 
 
-def post_mastodon_toot(url, summary, keywords):
-    # Generate the toot content
-    toot_content = f'{url}\n#knowledgeGPT\n{summary}\n\nKeywords: {keywords}\n\n'[:500]
-    # Post the toot
-    post_masotodon(toot_content)
-    return
+# def post_mastodon_toot(url, summary, keywords):
+#     # Generate the toot content
+#     toot_content = f'{url}\n#knowledgeGPT\n{summary}\n\nKeywords: {keywords}\n\n'[:500]
+#     # Post the toot
+#     post_masotodon(toot_content)
+#     return
 
-@client.event
-async def on_ready():
-    print('Logged in as {0.user}'.format(client))
+# @client.event
+# async def on_ready():
+#     print('Logged in as {0.user}'.format(client))
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
+# @client.event
+# async def on_message(message):
+def on_message(message):
+    # if message.author == client.user:
+    #     return
 
     url = 'www.google.com'
     if message.content.startswith('!wget'):
         url = message.content.split(' ', 1)[1].strip() # get the URL from the message content after the command
     else:
         url = message.content.split(' ',1)[0].strip() # ignore the command and get the URL from the message content
-    post_flag = message.content.split(' ')[-1] # get the post flag from the message content after the command
+    # post_flag = message.content.split(' ')[-1] # get the post flag from the message content after the command
     # Get the content for the URL
     try:
         content = get_url_content(url)
@@ -153,10 +158,11 @@ async def on_message(message):
                         keywords=keywords, 
                         embeddings=embedding,
                         obsidian_markdown=obsidian_markdown)
-        await message.channel.send(f'Saved {complete_url}\n\n{summary}\n\nKeywords: {keywords}'[:2000])
-        if not post_flag == 'nopost':
-            post_mastodon_toot(complete_url, summary, keywords)
-            await message.channel.send(f'Posted to Mastodon')
+        print(f'Saved {complete_url}\n\n{summary}\n\nKeywords: {keywords}'[:2000])
+        # await message.channel.send(f'Saved {complete_url}\n\n{summary}\n\nKeywords: {keywords}'[:2000])
+        # if not post_flag == 'nopost':
+        #     post_mastodon_toot(complete_url, summary, keywords)
+        #     await message.channel.send(f'Posted to Mastodon')
     except socket.gaierror as e:
         print(f'Error downloading URL "{url}": {str(e)}')
 
@@ -175,8 +181,18 @@ async def on_message(message):
                 with open(file_path, 'r') as file:
                     content_dict = json.load(file)
                     # Send the content to the Discord channel
-                    await message.channel.send(f'{content_dict["url"]}\n\n{content_dict["summary"]}\n\nKeywords: {content_dict["keywords"]}')
-    
+                    # await message.channel.send(f'{content_dict["url"]}\n\n{content_dict["summary"]}\n\nKeywords: {content_dict["keywords"]}')
+                    print(content_dict)
+
+
+@dataclass
+class Message:
+    """Class to mimic discord message."""
+    content: str
+
 
 if __name__ == '__main__':
-    client.run(discord_token)
+    # client.run(discord_token)
+    source = input("Enter a url: ")
+    message = Message(content="!wget " + source)
+    on_message(message)

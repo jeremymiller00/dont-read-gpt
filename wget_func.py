@@ -6,12 +6,13 @@ import re
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound
 import json
 
+
 def get_html_content(url):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
     }
 
-    response = requests.get(url,headers=headers)
+    response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
     content = soup.get_text()
 
@@ -19,6 +20,7 @@ def get_html_content(url):
     content = '\n'.join([line for line in content.split('\n') if line.strip()])
 
     return content
+
 
 def download_arxiv_pdf(arxiv_link, local_directory):
     if arxiv_link.startswith("https://arxiv.org/abs/"):
@@ -38,6 +40,7 @@ def download_arxiv_pdf(arxiv_link, local_directory):
         f.write(response.content)
 
     print(f"PDF downloaded to: {local_file_path}")
+
 
 def extract_arxiv_id(url, include_version=False):
     # Patterns for different types of Arxiv URLs
@@ -59,6 +62,7 @@ def extract_arxiv_id(url, include_version=False):
 
     return None
 
+
 def get_arxiv_content_old_version(url):
     if '/pdf/' in url:
         # If the URL is a PDF link, construct the corresponding abstract link
@@ -73,6 +77,7 @@ def get_arxiv_content_old_version(url):
     content = '\n'.join([line for line in content.split('\n') if line.strip()])
 
     return content
+
 
 # arxiv HTML page may have a few patterns, so we need to try multiple URLs
 def fetch_arxiv_page(arxiv_id):
@@ -91,6 +96,7 @@ def fetch_arxiv_page(arxiv_id):
                 return response.text
     return None  # Return None if none of the URLs work
 
+
 def remove_latex_equations(text):
     # Pattern to match common LaTeX equation delimiters and commands
     # Adjust the pattern as needed to cover more cases
@@ -102,6 +108,7 @@ def remove_latex_equations(text):
     clean_text = re.sub(r'\{|\}', '', clean_text)
     
     return clean_text
+
 
 def remove_complex_latex(text):
     # Attempt to catch complex LaTeX-like expressions by looking for extended patterns
@@ -133,6 +140,7 @@ def remove_complex_latex(text):
     clean_text = re.sub(r'\s+', ' ', clean_text).strip()  # Remove extra spaces
     
     return clean_text
+
 
 def parse_html(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
@@ -178,6 +186,7 @@ def parse_html(html_content):
 
     return sections
 
+
 # new version of get_arxiv_content by including html version
 # now we get the ID first, and then construct the html version link
 def get_arxiv_content(url):
@@ -193,6 +202,7 @@ def get_arxiv_content(url):
         #return "Arxiv page not found."
         print("Arxiv page not found. Downgrading to old version.")
         return get_arxiv_content_old_version(url)
+
 
 def get_github_content(url):
     if url.endswith('/'):
@@ -234,6 +244,7 @@ def get_github_content(url):
 
     return content
 
+
 # updated youtube ID regex pattern 
 def extract_video_id(url):
     """
@@ -249,6 +260,7 @@ def extract_video_id(url):
         if match:
             return match.group(6)
     return None
+
 
 def get_youtube_transcript_content(url):
     video_id = extract_video_id(url)
@@ -281,6 +293,7 @@ def get_youtube_transcript_content(url):
     except NoTranscriptFound:
         return "No transcript found for this video."
 
+
 # updated youtube URL pattern
 def if_youtube(url):
     youtube_regex = (
@@ -293,12 +306,14 @@ def if_youtube(url):
     else:
         return False
     
+
 def fetch_huggingface_model_page(url):
     response = requests.get(url)
     if response.status_code == 200:
         return response.text
     else:
         return None
+
 
 def parse_huggingface_html(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
@@ -317,6 +332,7 @@ def parse_huggingface_html(html_content):
 
     return sections
 
+
 def get_huggingface_content(url):
     model_html_content = fetch_huggingface_model_page(url)
     if model_html_content:
@@ -325,6 +341,7 @@ def get_huggingface_content(url):
         return content
     else:
         return "Hugging Face model page not found."
+
 
 # if the link is a github notebook link, we need to get the raw content
 def get_github_notebook_content(github_url):
@@ -335,6 +352,7 @@ def get_github_notebook_content(github_url):
         return response.text
     else:
         return None
+
 
 # convert the notebook content to a list of cells and their types
 def parse_notebook(notebook_content):
@@ -347,6 +365,7 @@ def parse_notebook(notebook_content):
         parsed_content.append({'type': cell_type, 'content': cell_content})
 
     return parsed_content
+
 
 def get_url_content(url):
     # Check if the URL includes a scheme, and add "https://" by default if not
@@ -374,6 +393,7 @@ def get_url_content(url):
     else:
         # Get the content for the URL as text-only HTML response
         return get_html_content(url)
+
 
 if __name__ == '__main__':
     # Test the function
