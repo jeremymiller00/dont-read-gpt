@@ -1,7 +1,7 @@
-import discord
+import os
+import sys
 import re
 import time
-import os
 import socket
 import json
 from dataclasses import dataclass
@@ -13,7 +13,6 @@ from ai_func import generate_embedding
 from wget_func import get_url_content
 from wget_func import download_arxiv_pdf
 
-from mastodon_func import post_masotodon
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -193,6 +192,8 @@ class Message:
 
 if __name__ == '__main__':
     # client.run(discord_token)
-    source = input("Enter a url: ")
+    source = input("Enter a url: (/q to quit) ")
+    if source == "/q":
+        sys.exit(0)
     message = Message(content="!wget " + source)
     on_message(message)
